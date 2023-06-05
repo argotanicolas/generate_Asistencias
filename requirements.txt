@@ -1,3 +1,4 @@
 pandas
 reportlab
 streamlit
+openpyxl
