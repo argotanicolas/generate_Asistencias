@@ -6,7 +6,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import streamlit as st
 from reportlab.lib.utils import ImageReader
-
+from io import BytesIO
+import base64
 def generate_pdf(turno_data, turno):
     # Configuración del documento PDF
     filename = f"turnos_{turno}.pdf"
@@ -19,7 +20,9 @@ def generate_pdf(turno_data, turno):
     table_y = page_height - 50 * mm  # Margen superior para el logo y el título
 
     # Crear el documento PDF
-    c = canvas.Canvas(filename, pagesize=A4)
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+   # c = canvas.Canvas(filename, pagesize=A4)
 
     # Agregar el logo
     logo_path = "logo.png"  # Ruta al archivo de imagen del logo
@@ -97,8 +100,25 @@ def generate_pdf(turno_data, turno):
         y = table_y - 40 - i * row_height
         c.rect(table_x, y, table_width, row_height, stroke=1, fill=0)  # Bordes de la fila
 
-# Guardar y cerrar el documento PDF
+
+    # Guardar y cerrar el documento PDF
     c.save()
+    buffer.seek(0)
+    # Convertir el archivo PDF a base64
+    pdf_bytes = buffer.getvalue()
+    encoded_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
+
+    # Mostrar enlace de descarga
+    href = f'<a href="data:application/pdf;base64,{encoded_pdf}" download="{filename}">Descargar PDF</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+   
+# Función para obtener el enlace de descarga del archivo
+def get_binary_file_downloader_html(bin_file, file_label='File', file_name='file.pdf'):
+    data = bin_file.read()
+    b64 = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{b64}" download="{file_name}">{file_label}</a>'
+    return href
 # Configurar la interfaz web con Streamlit
 st.title("Generador de Planillas de Turnos")
 
