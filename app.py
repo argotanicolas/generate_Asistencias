@@ -152,7 +152,7 @@ if uploaded_file is not None:
         st.success("¡Archivos PDF generados y descargados correctamente!")
     st.header(':blue[Visualiza y descarga]')
     st.markdown("""
-        [Archivo CSV](https://docs.google.com/spreadsheets/d/1teOG5dXvA9kfp1rt2ZJYdvn0YkUVHy3QsMenBDJpMm8/edit?usp=sharing)
+        [Planilla de Turno Examen](https://docs.google.com/spreadsheets/d/100Q2umy7HXSt74Tm6NN_aN0fE0kznVb3xCAva8J0v2M/edit?usp=sharing)
         """)
     categorias = df["categoria"].unique()
     turnos = df["Turnos"].unique()
