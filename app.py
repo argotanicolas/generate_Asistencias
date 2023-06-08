@@ -11,7 +11,8 @@ import base64
 def generate_pdf(turno_data, turno):
     # Configuración del documento PDF
     filename = f"turnos_{turno}.pdf"
-    document_title = f"Concurso Persona con discapacidad - Turno {turno}"
+    document_title = f"Concurso Persona con discapacidad"
+    document_title_1 = f"Turno {turno} - {categoria}"
     page_width, page_height = A4
 
     # Configuración de la tabla
@@ -43,11 +44,13 @@ def generate_pdf(turno_data, turno):
     c.drawImage(logo_image, logo_x, logo_y, logo_width * logo_scale, logo_height * logo_scale)
 
     # Agregar el título
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(page_width / 2, page_height - 40 * mm, document_title)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(page_width / 2, page_height - 35 * mm, document_title)
 
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(page_width / 2, page_height - 45 * mm, document_title_1)
     # Configurar la tabla de datos
-    column_widths = [15 * mm, 30 * mm, 70 * mm, 50 * mm, 50 * mm]
+    column_widths = [15 * mm, 30 * mm, 70 * mm, 50 * mm, 45 * mm]
     row_height = 20 * mm
 
     # Dibujar los encabezados de la tabla
@@ -71,9 +74,12 @@ def generate_pdf(turno_data, turno):
             c.drawImage(logo_image, logo_x, logo_y, logo_width * logo_scale, logo_height * logo_scale)
 
             # Agregar el título en cada página
-            c.setFont("Helvetica-Bold", 16)
-            c.drawCentredString(page_width / 2, page_height - 40 * mm, document_title)
+               # Agregar el título
+            c.setFont("Helvetica-Bold", 18)
+            c.drawCentredString(page_width / 2, page_height - 35 * mm, document_title)
 
+            c.setFont("Helvetica-Bold", 14)
+            c.drawCentredString(page_width / 2, page_height - 45 * mm, document_title_1)
             # Dibujar los encabezados de la tabla en cada página
             c.setFont("Helvetica", 12)
             c.drawString(table_x + 5 * mm, table_y - 20, "Nº")
@@ -122,40 +128,49 @@ def get_binary_file_downloader_html(bin_file, file_label='File', file_name='file
 # Configurar la interfaz web con Streamlit
 st.title("Generador de Planillas de Turnos")
 
-uploaded_file = st.file_uploader("Cargar archivo Excel", type="xlsx")
+uploaded_file = st.file_uploader("Cargar archivo Excel", type="csv")
 
 if uploaded_file is not None:
-    df = pd.read_excel(uploaded_file)
-    # Agrupar por turnos y generar un PDF para cada grupo
+    df = pd.read_csv(uploaded_file)
+    # Agrupar por categoría y turno y generar un PDF para cada grupo
+    categorias = df["categoria"].unique()
     turnos = df["Turnos"].unique()
-    # Definir el orden deseado de los turnos
-    orden_turnos = ["DIA 1 - 8:00 Salón", "DIA 1 - 10:30 Salón","DIA 2 - 8:00 Salón","DIA 2 - 10:30 Salón","DIA 3 - 8:00 Salón","DIA 3 - 8:00 Sala 1","DIA 3 - 10:30 Salón","DIA 3 - 10:30 Sala 1","DIA 4 - 8:00 Sala 1","DIA 4  - 10:00 Sala 1","DIA 5 - 8:00 Sala 1","DIA 5 - 10:30 Sala 1","DIA 6 - 8:00 Sala 1","DIA 6 - 10:30 Sala 1"]
-    if st.button("Descargar todos las planillas"):
-        for turno in turnos:
-            turno_data = df[df["Turnos"] == turno]
-            if not turno_data.empty:
-                turno_data=turno_data.sort_values(['apellido'])
-                turno_data = turno_data.reset_index(drop=True)
-                turno_data["Nª"] = turno_data.index + 1
-                generate_pdf(turno_data, turno)
+    
+    if st.button("Descargar todas las planillas"):
+        for categoria in categorias:
+            for turno in turnos:
+                filtro = (df["categoria"] == categoria) & (df["Turnos"] == turno)
+                turno_data = df[filtro]
+                
+                if not turno_data.empty:
+                    turno_data = turno_data.sort_values(['apellido'])
+                    turno_data = turno_data.reset_index(drop=True)
+                    turno_data["Nª"] = turno_data.index + 1
+                    generate_pdf(turno_data, categoria + "_" + turno)
+
                
         st.success("¡Archivos PDF generados y descargados correctamente!")
-    st.header(f':blue[Visualiza y descarga ]')
-    for turno in orden_turnos:
-        turno_data = df[df["Turnos"] == turno]
-        if not turno_data.empty:
-            turno_data=turno_data.sort_values(['apellido'])
-            turno_data = turno_data.reset_index(drop=True)
-            turno_data["Nª"] = turno_data.index + 1
-            cantidad_personas = len(turno_data)
-            st.header(f':blue[Turno]: {turno}')
-            st.caption(f':blue[Cantidad de personas por turno]: {cantidad_personas}')
-            columnas = ["documento", "apellido", "nombres", "correo", "telefono", "centro", "Grupo", "Apoyo", "Discapacidad declarada"]
+    st.header(':blue[Visualiza y descarga]')
+    st.markdown("""
+        [Archivo CSV](https://docs.google.com/spreadsheets/d/1teOG5dXvA9kfp1rt2ZJYdvn0YkUVHy3QsMenBDJpMm8/edit?usp=sharing)
+        """)
+    categorias = df["categoria"].unique()
+    turnos = df["Turnos"].unique()
+    for categoria in categorias:
+        for turno in turnos:
+            turno_data = df[df["Turnos"] == turno]
             
-            turno_data[columnas]
-
-            if st.button(f"Generar Turno {turno}"):
-                generate_pdf(turno_data, turno)
-                st.success(f"¡Archivo PDF para Turno {turno} generado correctamente!")
-
-
+            if not turno_data.empty:
+                turno_data = turno_data.sort_values(['apellido'])
+                turno_data = turno_data.reset_index(drop=True)
+                turno_data["Nª"] = turno_data.index + 1
+                cantidad_personas = len(turno_data)
+                
+                st.header(f':blue[Turno]: {turno} -{categoria}')
+                st.caption(f':blue[Cantidad de personas por turno]: {cantidad_personas}')
+                
+                turno_data  # Muestra los datos del turno en la interfaz
+                
+                if st.button(f"Generar Turno {turno}"):
+                    generate_pdf(turno_data, turno)
+                    st.success(f"¡Archivo PDF para Turno {turno} generado correctamente!")
