@@ -10,9 +10,9 @@ from io import BytesIO
 import base64
 def generate_pdf(turno_data, turno):
     # Configuración del documento PDF
-    filename = f"turnos_{turno}.pdf"
+    filename = f"turnos-{turno}.pdf"
     document_title = f"Concurso Persona con discapacidad"
-    document_title_1 = f"Turno {turno} - {categoria}"
+    document_title_1 = f"Turno: {turno}"
     page_width, page_height = A4
 
     # Configuración de la tabla
@@ -50,7 +50,7 @@ def generate_pdf(turno_data, turno):
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(page_width / 2, page_height - 45 * mm, document_title_1)
     # Configurar la tabla de datos
-    column_widths = [15 * mm, 30 * mm, 70 * mm, 50 * mm, 45 * mm]
+    column_widths = [15 * mm, 30 * mm, 85 * mm, 45 * mm, 45 * mm]
     row_height = 20 * mm
 
     # Dibujar los encabezados de la tabla
@@ -58,7 +58,7 @@ def generate_pdf(turno_data, turno):
     c.drawString(table_x + 5 * mm, table_y - 20, "Nº")
     c.drawString(table_x + 20 * mm, table_y - 20, "Documento")
     c.drawString(table_x + 55 * mm, table_y - 20, "Nombre y Apellido")
-    c.drawString(table_x + 130 * mm, table_y - 20, "Firma")
+    c.drawString(table_x + 140 * mm, table_y - 20, "Firma")
     c.drawString(table_x + 180 * mm, table_y - 20, "Observación")
 
 
@@ -146,7 +146,7 @@ if uploaded_file is not None:
                     turno_data = turno_data.sort_values(['apellido'])
                     turno_data = turno_data.reset_index(drop=True)
                     turno_data["Nª"] = turno_data.index + 1
-                    generate_pdf(turno_data, categoria + "_" + turno)
+                    generate_pdf(turno_data, turno+ "-" + categoria )
 
                
         st.success("¡Archivos PDF generados y descargados correctamente!")
